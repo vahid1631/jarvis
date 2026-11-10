@@ -1,0 +1,302 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#020610">
+<meta name="description" content="جارویس — دستیار صوتی فارسی">
+<title>جارویس</title>
+<link rel="manifest" href="manifest.json">
+<link rel="icon" href="icons/icon-192.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+  * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+  html, body { height: 100%; }
+  body {
+    margin: 0;
+    font-family: Vazirmatn, Tahoma, 'Segoe UI', sans-serif;
+    background: radial-gradient(120% 90% at 50% 0%, #06182b 0%, #030a14 45%, #010409 100%);
+    color: #d7f4ff;
+    display: flex;
+    flex-direction: column;
+    height: 100dvh;
+    overflow: hidden;
+  }
+
+  /* ---------- هدر ---------- */
+  header {
+    display: flex; justify-content: space-between; align-items: center;
+    padding: 14px 18px;
+    border-bottom: 1px solid rgba(53,224,255,.12);
+  }
+  .brand { font-weight: 700; font-size: 18px; letter-spacing: .5px; display: flex; align-items: center; gap: 9px; }
+  .logo-dot {
+    width: 11px; height: 11px; border-radius: 50%;
+    background: #35e0ff;
+    box-shadow: 0 0 12px #35e0ff, 0 0 26px rgba(53,224,255,.5);
+    animation: pulse 3s ease-in-out infinite;
+  }
+  .status { font-size: 12px; color: #7fd6e8; }
+
+  /* ---------- چت ---------- */
+  #chat {
+    flex: 1; overflow-y: auto; padding: 14px;
+    display: flex; flex-direction: column; gap: 10px;
+  }
+  .msg {
+    max-width: 86%; padding: 10px 14px; border-radius: 14px;
+    font-size: 14.5px; line-height: 1.9;
+    white-space: pre-line; word-break: break-word;
+    animation: fadeIn .25s ease-out;
+  }
+  .msg.jarvis {
+    align-self: flex-start;
+    background: rgba(11,28,48,.92);
+    border: 1px solid rgba(53,224,255,.18);
+    border-start-start-radius: 4px;
+  }
+  .msg.user {
+    align-self: flex-end;
+    background: rgba(53,224,255,.12);
+    border: 1px solid rgba(53,224,255,.3);
+    color: #bdeeff;
+    border-start-end-radius: 4px;
+  }
+  .msg a { color: #35e0ff; }
+  @keyframes fadeIn { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; } }
+
+  .live {
+    padding: 2px 18px 4px; font-size: 13px; color: #6fa9bd;
+    font-style: italic; min-height: 22px;
+  }
+
+  /* ---------- هسته (راکتور) ---------- */
+  .core-wrap { display: flex; flex-direction: column; align-items: center; gap: 8px; padding: 8px 0 2px; }
+  .core {
+    width: 148px; height: 148px; border-radius: 50%;
+    position: relative; border: none; cursor: pointer;
+    background: radial-gradient(circle at 50% 38%, #10395c 0%, #071c31 55%, #030d18 100%);
+    box-shadow: 0 0 45px rgba(53,224,255,.18), inset 0 0 32px rgba(53,224,255,.1);
+    transition: transform .15s;
+  }
+  .core:active { transform: scale(.96); }
+  .core .ring { position: absolute; border-radius: 50%; pointer-events: none; }
+  .r1 { inset: 10px; border: 1px solid rgba(53,224,255,.55); box-shadow: inset 0 0 12px rgba(53,224,255,.35); }
+  .r2 { inset: 26px; border: 2px dotted rgba(53,224,255,.4); }
+  .r3 { inset: 44px; border: 1px solid rgba(53,224,255,.7); }
+  .core-dot {
+    position: absolute; inset: 58px; border-radius: 50%;
+    background: radial-gradient(circle, #bffaff 0%, #35e0ff 45%, rgba(53,224,255,0) 75%);
+    filter: blur(1px);
+    animation: pulse 3s ease-in-out infinite;
+  }
+  .core.listening { box-shadow: 0 0 60px rgba(53,224,255,.35), inset 0 0 40px rgba(53,224,255,.18); }
+  .core.listening .core-dot { animation-duration: .9s; }
+  .core.speaking .core-dot { animation-duration: .45s; background: radial-gradient(circle, #ffffff 0%, #7deaff 45%, rgba(53,224,255,0) 75%); }
+  .core.thinking .core-dot { animation-duration: 1.4s; }
+  @keyframes pulse { 0%,100% { transform: scale(.85); opacity: .75; } 50% { transform: scale(1.08); opacity: 1; } }
+  .core-hint { font-size: 12px; color: #5f93a8; }
+
+  /* ---------- کنترل‌ها ---------- */
+  .controls {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 6px 16px; gap: 10px; flex-wrap: wrap;
+  }
+  .toolbar { display: flex; gap: 8px; }
+  .toolbar button {
+    background: rgba(11,28,48,.85); border: 1px solid rgba(53,224,255,.25);
+    color: #9fdcef; border-radius: 10px; padding: 8px 13px; font-size: 17px; cursor: pointer;
+  }
+  .toolbar button:active { background: rgba(53,224,255,.2); }
+
+  /* ---------- سوییچ ---------- */
+  .toggle { position: relative; display: inline-flex; align-items: center; gap: 9px; cursor: pointer; font-size: 13.5px; color: #9fdcef; }
+  .toggle .track {
+    position: relative; width: 44px; height: 24px; flex: none;
+    background: #16324b; border-radius: 999px; border: 1px solid rgba(53,224,255,.25);
+    transition: background .2s;
+  }
+  .toggle .track::after {
+    content: ''; position: absolute; top: 2px; inset-inline-start: 3px;
+    width: 18px; height: 18px; border-radius: 50%;
+    background: #7fb8cc; transition: transform .2s, background .2s;
+  }
+  .toggle input { display: none; }
+  .toggle input:checked + .track { background: rgba(53,224,255,.35); }
+  .toggle input:checked + .track::after { transform: translateX(-20px); background: #35e0ff; }
+
+  /* ---------- نوار تایپ ---------- */
+  .inputbar { display: flex; gap: 8px; padding: 8px 14px calc(10px + env(safe-area-inset-bottom)); }
+  #cmdInput {
+    flex: 1; background: rgba(7,20,36,.92); border: 1px solid rgba(53,224,255,.25);
+    color: #d7f4ff; border-radius: 12px; padding: 12px 14px;
+    font-size: 15px; font-family: inherit; outline: none; min-width: 0;
+  }
+  #cmdInput:focus { border-color: rgba(53,224,255,.6); box-shadow: 0 0 12px rgba(53,224,255,.15); }
+  #sendBtn {
+    background: rgba(53,224,255,.15); border: 1px solid rgba(53,224,255,.4);
+    border-radius: 12px; color: #35e0ff; font-size: 17px; padding: 0 16px; cursor: pointer;
+  }
+
+  /* ---------- اورلی هشدار ---------- */
+  .alarm-overlay {
+    position: fixed; inset: 0; z-index: 50;
+    background: rgba(120,10,30,.35); backdrop-filter: blur(4px);
+    display: flex; align-items: center; justify-content: center;
+  }
+  .alarm-overlay[hidden] { display: none; }
+  .alarm-box {
+    background: #1a0a12; border: 2px solid #ff5d75; border-radius: 20px;
+    padding: 26px 34px; text-align: center;
+    box-shadow: 0 0 60px rgba(255,93,117,.4);
+    animation: alarmPulse 1s ease-in-out infinite;
+  }
+  @keyframes alarmPulse { 0%,100% { box-shadow: 0 0 40px rgba(255,93,117,.3); } 50% { box-shadow: 0 0 80px rgba(255,93,117,.65); } }
+  .alarm-title { font-size: 20px; font-weight: 700; margin-bottom: 8px; }
+  .alarm-label { color: #ffb9c4; margin-bottom: 18px; font-size: 15px; }
+  #alarmStop {
+    background: #ff5d75; border: none; color: #26060d; font-weight: 700;
+    border-radius: 12px; padding: 11px 26px; font-size: 15px; cursor: pointer; font-family: inherit;
+  }
+
+  /* ---------- دیالوگ‌ها ---------- */
+  dialog {
+    width: min(430px, 92vw); background: #081726;
+    border: 1px solid rgba(53,224,255,.3); border-radius: 18px;
+    color: #d7f4ff; padding: 20px; margin: auto;
+  }
+  dialog::backdrop { background: rgba(1,6,12,.65); backdrop-filter: blur(3px); }
+  dialog h3 { margin: 0 0 6px; font-size: 17px; color: #35e0ff; }
+  dialog .hint { font-size: 12.5px; color: #7fb8cc; line-height: 1.8; margin: 4px 0 10px; }
+  dialog label { display: block; font-size: 13px; color: #7fb8cc; margin: 10px 0 4px; }
+  dialog input[type=text], dialog input[type=password], dialog input[type=tel], dialog select {
+    width: 100%; background: #0b1c30; border: 1px solid rgba(53,224,255,.25);
+    color: #d7f4ff; border-radius: 10px; padding: 10px 12px; font-size: 14px;
+    font-family: inherit; outline: none;
+  }
+  dialog input:focus, dialog select:focus { border-color: rgba(53,224,255,.55); }
+  .btn {
+    background: rgba(53,224,255,.14); border: 1px solid rgba(53,224,255,.45);
+    color: #aeeaff; border-radius: 10px; padding: 10px 16px;
+    font-family: inherit; font-size: 14px; cursor: pointer;
+  }
+  .btn.primary { background: rgba(53,224,255,.3); }
+  .btn:active { background: rgba(53,224,255,.35); }
+  .row { display: flex; justify-content: flex-start; gap: 8px; margin-top: 14px; flex-wrap: wrap; }
+  .toggle-row { display: flex; align-items: center; gap: 10px; padding: 10px 0 2px; font-size: 14px; }
+  .list-item {
+    display: flex; align-items: center; justify-content: space-between; gap: 8px;
+    background: #0b1c30; border: 1px solid rgba(53,224,255,.15);
+    border-radius: 10px; padding: 10px 12px; margin-top: 8px; font-size: 14px;
+  }
+  .list-item .meta { color: #7fb8cc; font-size: 12.5px; }
+  .danger {
+    color: #ff7d8f; background: transparent; border: 1px solid rgba(255,125,143,.4);
+    border-radius: 8px; padding: 5px 10px; cursor: pointer; font-family: inherit; font-size: 12.5px; flex: none;
+  }
+  .empty { color: #5f93a8; font-size: 13px; padding: 10px 0; }
+
+  /* ---------- نوار نصب ---------- */
+  #installBar { position: fixed; top: 12px; left: 50%; transform: translateX(-50%); z-index: 60; }
+  #installBtn {
+    background: rgba(53,224,255,.25); border: 1px solid rgba(53,224,255,.6);
+    color: #bffaff; border-radius: 999px; padding: 9px 18px;
+    font-family: inherit; font-size: 14px; cursor: pointer;
+    box-shadow: 0 0 24px rgba(53,224,255,.3);
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="brand"><span class="logo-dot"></span> جارویس</div>
+  <div class="status" id="statusText">آماده</div>
+</header>
+
+<main id="chat" aria-live="polite"></main>
+<div class="live" id="live" hidden></div>
+
+<div class="core-wrap">
+  <button id="coreBtn" class="core idle" aria-label="گفتن دستور">
+    <span class="ring r1"></span>
+    <span class="ring r2"></span>
+    <span class="ring r3"></span>
+    <span class="core-dot"></span>
+  </button>
+  <div class="core-hint" id="coreHint">برای حرف زدن لمس کن</div>
+</div>
+
+<div class="controls">
+  <label class="toggle">
+    <input type="checkbox" id="wakeToggle">
+    <span class="track"></span>
+    حالت گوش دادن
+  </label>
+  <div class="toolbar">
+    <button id="btnAlarms" title="هشدارها">⏰</button>
+    <button id="btnContacts" title="مخاطبین">👤</button>
+    <button id="btnSettings" title="تنظیمات">⚙️</button>
+  </div>
+</div>
+
+<div class="inputbar">
+  <input id="cmdInput" type="text" placeholder="مثلا: قیمت بیت کوین" autocomplete="off" enterkeyhint="send">
+  <button id="sendBtn" title="ارسال">➤</button>
+</div>
+
+<div id="alarmOverlay" class="alarm-overlay" hidden>
+  <div class="alarm-box">
+    <div class="alarm-title">⏰ هشدار جارویس</div>
+    <div class="alarm-label" id="alarmLabel"></div>
+    <button id="alarmStop">متوقف کردن</button>
+  </div>
+</div>
+
+<dialog id="dlgAlarms">
+  <h3>⏰ هشدارها</h3>
+  <div id="alarmsList"></div>
+  <div class="row"><button class="btn" id="alarmsClose">بستن</button></div>
+</dialog>
+
+<dialog id="dlgContacts">
+  <h3>👤 مخاطبین</h3>
+  <p class="hint">مخاطب اضافه کن تا با دستور صوتی «با ... تماس بگیر» بتونی بهش زنگ بزنی.</p>
+  <label>اسم</label>
+  <input id="contactName" type="text" placeholder="مثلا: علی">
+  <label>شماره تلفن</label>
+  <input id="contactNumber" type="tel" inputmode="tel" placeholder="09xxxxxxxxx">
+  <div class="row">
+    <button class="btn primary" id="contactAdd">افزودن</button>
+    <button class="btn" id="contactClose">بستن</button>
+  </div>
+  <div id="contactsList"></div>
+</dialog>
+
+<dialog id="dlgSettings">
+  <h3>⚙️ تنظیمات</h3>
+  <div class="toggle-row">
+    <label class="toggle"><input type="checkbox" id="setAI"><span class="track"></span></label>
+    <span>هوش مصنوعی (پاسخ به هر سوالی)</span>
+  </div>
+  <p class="hint">اگه کلید API یه سرویس سازگار با OpenAI داری، واردش کن تا جارویس به هر سوالی جواب بده. پیشنهاد ما <b>OpenRouter</b> است که از فراخوانی مستقیم مرورگر پشتیبانی می‌کنه (در OpenRouter آدرس API میشه https://openrouter.ai/api/v1). بدون کلید هم جستجوی ویکی‌پدیا و بقیه قابلیت‌ها کار می‌کنن. کلید فقط روی گوشی خودت ذخیره میشه.</p>
+  <label>آدرس API</label>
+  <input id="setBase" type="text" placeholder="https://api.openai.com/v1">
+  <label>کلید API</label>
+  <input id="setKey" type="password" placeholder="sk-...">
+  <label>مدل</label>
+  <input id="setModel" type="text" placeholder="gpt-4o-mini">
+  <label>صدای گفتار</label>
+  <select id="setVoice"></select>
+  <div class="row">
+    <button class="btn primary" id="setSave">ذخیره</button>
+    <button class="btn" id="setTest">تست هوش مصنوعی</button>
+    <button class="btn" id="setClose">بستن</button>
+  </div>
+</dialog>
+
+<div id="installBar" hidden><button id="installBtn">📲 نصب جارویس روی گوشی</button></div>
+
+<script src="app.js"></script>
+</body>
+</html>
