@@ -133,7 +133,6 @@ function speak(text, opts = {}) {
     }
     try { speechSynthesis.cancel(); } catch { /* */ }
     const u = new SpeechSynthesisUtterance(text);
-    const v = pickVoice();
     if (v) u.voice = v;
     u.lang = (v && v.lang) || 'fa-IR';
     u.rate = 1;
